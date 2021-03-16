@@ -4,6 +4,7 @@ exports.form = {
 	description: String,
 	org: [String, ['alloc', 'aleclarson']],
 	target: [String, 'esnext'],
+	module: [String, ['esnext', 'commonjs']],
 }
 
 exports.context = {

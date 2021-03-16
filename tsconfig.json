@@ -4,6 +4,7 @@
     "declaration": true,
     "esModuleInterop": true,
     "lib": ["es2018"],
+    "module": "{{module}}",
     "moduleResolution": "node",
     "noEmit": true,
     "noUnusedLocals": true,
