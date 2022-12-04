@@ -10,4 +10,5 @@ exports.form = {
 
 exports.context = {
 	name: path.basename(__dirname),
+	format: (_body, ctx) => ctx.module == 'commonjs' ? 'cjs' : 'esm',
 }
