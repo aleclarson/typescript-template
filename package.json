@@ -3,30 +3,26 @@
   "version": "0.0.0",
   "description": "{{description}}",
   "author": "Alec Larson",
-  "license": "MIT",
+  "license": "See LICENSE",
   "repository": "{{org}}/{{name}}",
   "main": "dist/{{name}}.js",
   "module": "dist/{{name}}.mjs",
   "types": "dist/{{name}}.d.ts",
   "files": [
-    "src",
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "dev": "{{tsup}} --sourcemap --watch",
+    "build": "{{tsup}}",
+    "lint": "tsc -p . --noEmit",
     "prepare": "yarn build"
   },
   "devDependencies": {
     "@alloc/prettier-config": "^1.0.0",
-    "@types/jest": "^26.0.20",
-    "esbuild": "^0.8.36",
-    "esbuild-jest": "npm:@alloc/esbuild-jest@^0.3.0",
-    "jest": "^26.6.3",
-    "prettier": "^2.0.5",
-    "rollup": "^2.38.1",
-    "rollup-plugin-dts": "^2.0.1",
-    "rollup-plugin-esbuild": "^2.6.1",
-    "typescript": "^4.0.0"
+    "prettier": "^2.8.0",
+    "tsup": "^6.5.0",
+    "typescript": "^4.9.3",
+    "vitest": "^0.25.3"
   },
   "prettier": "@alloc/prettier-config"
 }

@@ -3,6 +3,7 @@ const path = require('path')
 exports.form = {
 	description: String,
 	org: [String, ['alloc', 'aleclarson']],
+	tsup: [String, ['tsup', 'tsup-node']],
 	target: [String, 'esnext'],
 	module: [String, ['esnext', 'commonjs']],
 }
