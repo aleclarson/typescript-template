@@ -3,7 +3,7 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
-  "[typescript]": {
+  "[typescript][json][markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
