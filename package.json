@@ -21,6 +21,7 @@
   "scripts": {
     "dev": "rimraf dist && tsup --sourcemap --watch",
     "build": "rimraf dist && tsup",
+    "format": "prettier --write .",
     "lint": "tsc-lint",
     "test": "vitest",
     "prepublishOnly": "pnpm build"
