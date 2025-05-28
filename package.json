@@ -25,14 +25,14 @@
     "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
-    "@alloc/prettier-config": "latest",
-    "@types/node": "latest",
-    "prettier": "latest",
-    "radashi": "latest",
-    "rimraf": "latest",
-    "tsc-lint": "latest",
-    "tsup": "latest",
-    "typescript": "latest",
-    "vitest": "latest"
+    "@alloc/prettier-config": "*",
+    "@types/node": "*",
+    "prettier": "*",
+    "radashi": "*",
+    "rimraf": "*",
+    "tsc-lint": "*",
+    "tsup": "*",
+    "typescript": "*",
+    "vitest": "*"
   }
 }
