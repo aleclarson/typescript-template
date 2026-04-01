@@ -21,14 +21,17 @@
     "format": "oxfmt .",
     "lint": "oxlint src",
     "test": "vitest",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "pnpm build",
+    "prepare": "tsx scripts/prepare.ts"
   },
   "devDependencies": {
+    "@clack/prompts": "*",
     "@types/node": "*",
     "oxfmt": "*",
     "oxlint": "*",
     "radashi": "*",
     "tsdown": "*",
+    "tsx": "*",
     "typescript": "*",
     "vitest": "*"
   }
