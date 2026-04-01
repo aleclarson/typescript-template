@@ -19,16 +19,16 @@
     "dev": "rimraf dist && tsup --sourcemap --watch",
     "build": "rimraf dist && tsup",
     "format": "oxfmt .",
-    "lint": "tsc-lint",
+    "lint": "oxlint src",
     "test": "vitest",
     "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
     "@types/node": "*",
     "oxfmt": "*",
+    "oxlint": "*",
     "radashi": "*",
     "rimraf": "*",
-    "tsc-lint": "*",
     "tsup": "*",
     "typescript": "*",
     "vitest": "*"
