@@ -16,8 +16,8 @@
     "url": "https://github.com/aleclarson/xxx.git"
   },
   "scripts": {
-    "dev": "rimraf dist && tsup --sourcemap --watch",
-    "build": "rimraf dist && tsup",
+    "dev": "tsdown --sourcemap --watch",
+    "build": "tsdown",
     "format": "oxfmt .",
     "lint": "oxlint src",
     "test": "vitest",
@@ -28,8 +28,7 @@
     "oxfmt": "*",
     "oxlint": "*",
     "radashi": "*",
-    "rimraf": "*",
-    "tsup": "*",
+    "tsdown": "*",
     "typescript": "*",
     "vitest": "*"
   }
