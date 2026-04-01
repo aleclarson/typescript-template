@@ -155,6 +155,12 @@ async function main() {
     }
   } catch {}
 
+  // ── 9. Squash history into a clean first commit ───────────────────────────
+  execSync(
+    'git update-ref -d HEAD && git add -A && git commit -m "initialize typescript template"',
+    { cwd: root, stdio: 'inherit', shell: true },
+  )
+
   outro("You're all set! Happy coding 🚀")
 }
 
