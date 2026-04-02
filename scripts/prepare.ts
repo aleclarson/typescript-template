@@ -116,7 +116,7 @@ async function main() {
 
     delete pkg.devDependencies['@types/node']
     delete pkg.devDependencies['vitest']
-    pkg.devDependencies['bun-types'] = '*'
+    pkg.devDependencies['@types/bun'] = '*'
 
     // Keep devDependencies sorted.
     pkg.devDependencies = Object.fromEntries(
@@ -127,7 +127,7 @@ async function main() {
 
     // Switch test tsconfig to bun-types.
     const testTs = readJSON('test/tsconfig.json')
-    testTs.compilerOptions.types = ['bun-types']
+    testTs.compilerOptions.types = ['bun']
     writeJSON('test/tsconfig.json', testTs)
 
     // vitest config is no longer needed.
