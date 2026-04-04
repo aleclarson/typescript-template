@@ -20,6 +20,7 @@
     "build": "tsdown",
     "format": "oxfmt .",
     "lint": "oxlint src",
+    "typecheck": "tsc --noEmit && tsc -p test --noEmit",
     "test": "vitest",
     "prepublishOnly": "pnpm build",
     "prepare": "tsx scripts/prepare.ts"
