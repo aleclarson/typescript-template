@@ -1,12 +1,4 @@
-import {
-  cancel,
-  confirm,
-  intro,
-  isCancel,
-  outro,
-  select,
-  text,
-} from '@clack/prompts'
+import { cancel, confirm, intro, isCancel, outro, select, text } from '@clack/prompts'
 import { execSync } from 'node:child_process'
 import {
   existsSync,
@@ -21,15 +13,13 @@ import { fileURLToPath } from 'node:url'
 
 const root = resolve(fileURLToPath(import.meta.url), '../..')
 
-const readJSON = (file: string) =>
-  JSON.parse(readFileSync(resolve(root, file), 'utf8'))
+const readJSON = (file: string) => JSON.parse(readFileSync(resolve(root, file), 'utf8'))
 
 const writeJSON = (file: string, data: unknown) =>
   writeFileSync(resolve(root, file), JSON.stringify(data, null, 2) + '\n')
 
 const readText = (file: string) => readFileSync(resolve(root, file), 'utf8')
-const writeText = (file: string, content: string) =>
-  writeFileSync(resolve(root, file), content)
+const writeText = (file: string, content: string) => writeFileSync(resolve(root, file), content)
 
 function detectPackageManager() {
   if (existsSync(resolve(root, 'pnpm-lock.yaml'))) return 'pnpm'
@@ -164,7 +154,7 @@ async function main() {
   outro("You're all set! Happy coding 🚀")
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err)
   process.exit(1)
 })
