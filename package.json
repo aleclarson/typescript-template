@@ -8,7 +8,9 @@
     "url": "https://github.com/aleclarson/xxx.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "docs",
+    "examples"
   ],
   "type": "module",
   "exports": {
