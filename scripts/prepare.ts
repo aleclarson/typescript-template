@@ -21,6 +21,9 @@ const writeJSON = (file: string, data: unknown) =>
 const readText = (file: string) => readFileSync(resolve(root, file), 'utf8')
 const writeText = (file: string, content: string) => writeFileSync(resolve(root, file), content)
 
+const sevenDaysInMinutes = 7 * 24 * 60
+const sevenDaysInSeconds = sevenDaysInMinutes * 60
+
 function detectPackageManager() {
   if (existsSync(resolve(root, 'pnpm-lock.yaml'))) return 'pnpm'
   if (existsSync(resolve(root, 'yarn.lock'))) return 'yarn'
@@ -130,9 +133,20 @@ async function main() {
     } catch {}
   }
 
-  // ── 6. Pin the chosen package manager ─────────────────────────────────────
+  // ── 6. Configure the chosen package manager ───────────────────────────────
   const pm = runner === 'bun' ? 'bun' : detectPackageManager()
   pkg.packageManager = `${pm}@${getPackageManagerVersion(pm)}`
+
+  if (pm === 'pnpm') {
+    writeText(
+      'pnpm-workspace.yaml',
+      `packages:\n  - .\nminimumReleaseAge: ${sevenDaysInMinutes}\nallowBuilds:\n  esbuild: true\n`,
+    )
+  }
+
+  if (pm === 'bun') {
+    writeText('bunfig.toml', `[install]\nminimumReleaseAge = ${sevenDaysInSeconds}\n`)
+  }
 
   // ── 7. Clean up prepare machinery from package.json ───────────────────────
   delete pkg.scripts.prepare
