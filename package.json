@@ -34,7 +34,7 @@
     "oxlint": "*",
     "radashi": "*",
     "tsdown": "*",
-    "tsnapi": "^0.1.1",
+    "tsnapi": "*",
     "tsx": "*",
     "typescript": "*",
     "vitest": "*"
