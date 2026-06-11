@@ -28,6 +28,10 @@ function detectPackageManager() {
   return 'npm'
 }
 
+function getPackageManagerVersion(pm: string) {
+  return execSync(`${pm} --version`, { cwd: root, encoding: 'utf8' }).trim()
+}
+
 async function main() {
   const pkg = readJSON('package.json')
 
@@ -126,18 +130,21 @@ async function main() {
     } catch {}
   }
 
-  // ── 6. Clean up prepare machinery from package.json ───────────────────────
+  // ── 6. Pin the chosen package manager ─────────────────────────────────────
+  const pm = runner === 'bun' ? 'bun' : detectPackageManager()
+  pkg.packageManager = `${pm}@${getPackageManagerVersion(pm)}`
+
+  // ── 7. Clean up prepare machinery from package.json ───────────────────────
   delete pkg.scripts.prepare
   delete (pkg.devDependencies as Record<string, string>)['@clack/prompts']
   delete (pkg.devDependencies as Record<string, string>)['tsx']
 
   writeJSON('package.json', pkg)
 
-  // ── 7. Install ─────────────────────────────────────────────────────────────
-  const pm = runner === 'bun' ? 'bun' : detectPackageManager()
+  // ── 8. Install ─────────────────────────────────────────────────────────────
   execSync(`${pm} install`, { cwd: root, stdio: 'inherit' })
 
-  // ── 8. Self-delete ─────────────────────────────────────────────────────────
+  // ── 9. Self-delete ─────────────────────────────────────────────────────────
   unlinkSync(resolve(root, 'scripts/prepare.ts'))
   try {
     if (readdirSync(resolve(root, 'scripts')).length === 0) {
@@ -145,7 +152,7 @@ async function main() {
     }
   } catch {}
 
-  // ── 9. Squash history into a clean first commit ───────────────────────────
+  // ── 10. Squash history into a clean first commit ──────────────────────────
   execSync(
     'git update-ref -d HEAD && git add -A && git commit -m "initialize typescript template"',
     { cwd: root, stdio: 'inherit', shell: true },
