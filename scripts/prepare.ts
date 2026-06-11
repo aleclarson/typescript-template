@@ -156,7 +156,8 @@ async function main() {
   writeJSON('package.json', pkg)
 
   // ── 8. Install ─────────────────────────────────────────────────────────────
-  const installCommand = pm === 'pnpm' ? 'pnpm up --latest' : `${pm} install`
+  const installCommand =
+    pm === 'pnpm' ? 'pnpm up --latest' : pm === 'bun' ? 'bun update --latest' : `${pm} install`
   execSync(installCommand, { cwd: root, stdio: 'inherit' })
 
   // ── 9. Self-delete ─────────────────────────────────────────────────────────
