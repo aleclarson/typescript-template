@@ -24,6 +24,35 @@ const writeText = (file: string, content: string) => writeFileSync(resolve(root,
 const sevenDaysInMinutes = 7 * 24 * 60
 const sevenDaysInSeconds = sevenDaysInMinutes * 60
 
+const licenseOptions = {
+  'Apache-2.0': {
+    label: 'Apache 2.0',
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.txt',
+  },
+  'FSL-1.1-ALv2': {
+    label: 'FSLv1-A2',
+    url: 'https://fsl.software/FSL-1.1-ALv2.template.md',
+  },
+  MIT: {
+    label: 'MIT',
+    url: 'https://raw.githubusercontent.com/spdx/license-list-data/main/text/MIT.txt',
+  },
+} as const
+
+type License = keyof typeof licenseOptions
+
+async function fetchLicenseText(license: License) {
+  const response = await fetch(licenseOptions[license].url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${licenseOptions[license].label} license: ${response.status}`)
+  }
+
+  return (await response.text())
+    .replace(/\$\{year\}/g, new Date().getFullYear().toString())
+    .replace(/\$\{licensor name\}/g, 'Alec Larson')
+    .replace(/<year> <copyright holders>/g, `${new Date().getFullYear()} Alec Larson`)
+}
+
 function detectPackageManager() {
   if (existsSync(resolve(root, 'pnpm-lock.yaml'))) return 'pnpm'
   if (existsSync(resolve(root, 'yarn.lock'))) return 'yarn'
@@ -61,8 +90,26 @@ async function main() {
     process.exit(0)
   }
 
-  // ── 2. Replace xxx occurrences ─────────────────────────────────────────────
+  // ── 2. License ─────────────────────────────────────────────────────────────
+  const license = await select<License>({
+    message: 'License',
+    initialValue: pkg.license as License,
+    options: Object.entries(licenseOptions).map(([value, option]) => ({
+      value: value as License,
+      label: option.label,
+    })),
+  })
+
+  if (isCancel(license)) {
+    cancel('Setup cancelled.')
+    process.exit(0)
+  }
+
+  // ── 3. Replace xxx occurrences ─────────────────────────────────────────────
   pkg.name = name
+  pkg.license = license
+  writeText('LICENSE', await fetchLicenseText(license))
+
   if (pkg.repository?.url) {
     pkg.repository.url = pkg.repository.url.replace(/xxx/g, name as string)
   }
@@ -71,14 +118,14 @@ async function main() {
     writeText('readme.md', readText('readme.md').replace(/\bxxx\b/g, name as string))
   }
 
-  // ── 3. Unset git origin ────────────────────────────────────────────────────
+  // ── 4. Unset git origin ────────────────────────────────────────────────────
   try {
     execSync('git remote remove origin', { cwd: root, stdio: 'pipe' })
   } catch {
     // No origin remote — that's fine.
   }
 
-  // ── 4. gh repo create ──────────────────────────────────────────────────────
+  // ── 5. gh repo create ──────────────────────────────────────────────────────
   const createRepo = await confirm({
     message: 'Run `gh repo create` now?',
     initialValue: false,
@@ -94,7 +141,7 @@ async function main() {
     execSync('gh repo create', { cwd: root, stdio: 'inherit' })
   }
 
-  // ── 5. Test runner ─────────────────────────────────────────────────────────
+  // ── 6. Test runner ─────────────────────────────────────────────────────────
   const runner = await select({
     message: 'Test runner',
     options: [
@@ -133,7 +180,7 @@ async function main() {
     } catch {}
   }
 
-  // ── 6. Configure the chosen package manager ───────────────────────────────
+  // ── 7. Configure the chosen package manager ───────────────────────────────
   const pm = runner === 'bun' ? 'bun' : detectPackageManager()
   pkg.packageManager = `${pm}@${getPackageManagerVersion(pm)}`
 
@@ -148,19 +195,19 @@ async function main() {
     writeText('bunfig.toml', `[install]\nminimumReleaseAge = ${sevenDaysInSeconds}\n`)
   }
 
-  // ── 7. Clean up prepare machinery from package.json ───────────────────────
+  // ── 8. Clean up prepare machinery from package.json ───────────────────────
   delete pkg.scripts.prepare
   delete (pkg.devDependencies as Record<string, string>)['@clack/prompts']
   delete (pkg.devDependencies as Record<string, string>)['tsx']
 
   writeJSON('package.json', pkg)
 
-  // ── 8. Install ─────────────────────────────────────────────────────────────
+  // ── 9. Install ─────────────────────────────────────────────────────────────
   const installCommand =
     pm === 'pnpm' ? 'pnpm up --latest' : pm === 'bun' ? 'bun update --latest' : `${pm} install`
   execSync(installCommand, { cwd: root, stdio: 'inherit' })
 
-  // ── 9. Self-delete ─────────────────────────────────────────────────────────
+  // ── 10. Self-delete ─────────────────────────────────────────────────────────
   unlinkSync(resolve(root, 'scripts/prepare.ts'))
   try {
     if (readdirSync(resolve(root, 'scripts')).length === 0) {
@@ -168,7 +215,7 @@ async function main() {
     }
   } catch {}
 
-  // ── 10. Squash history into a clean first commit ──────────────────────────
+  // ── 11. Squash history into a clean first commit ──────────────────────────
   execSync(
     'git update-ref -d HEAD && git add -A && git commit -m "initialize typescript template"',
     { cwd: root, stdio: 'inherit', shell: true },
