@@ -156,7 +156,8 @@ async function main() {
   writeJSON('package.json', pkg)
 
   // ── 8. Install ─────────────────────────────────────────────────────────────
-  execSync(`${pm} install`, { cwd: root, stdio: 'inherit' })
+  const installCommand = pm === 'pnpm' ? 'pnpm up --latest' : `${pm} install`
+  execSync(installCommand, { cwd: root, stdio: 'inherit' })
 
   // ── 9. Self-delete ─────────────────────────────────────────────────────────
   unlinkSync(resolve(root, 'scripts/prepare.ts'))
