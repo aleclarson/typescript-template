@@ -4,6 +4,7 @@ import {
   existsSync,
   readFileSync,
   readdirSync,
+  rmSync,
   rmdirSync,
   unlinkSync,
   writeFileSync,
@@ -54,10 +55,25 @@ async function fetchLicenseText(license: License) {
 }
 
 function detectPackageManager() {
+  const userAgent = process.env.npm_config_user_agent
+  const execPath = process.env.npm_execpath
+
+  if (userAgent?.startsWith('pnpm/') || execPath?.includes('/pnpm')) return 'pnpm'
+  if (userAgent?.startsWith('yarn/') || execPath?.includes('/yarn')) return 'yarn'
+  if (userAgent?.startsWith('bun/') || execPath?.includes('/bun')) return 'bun'
+
   if (existsSync(resolve(root, 'pnpm-lock.yaml'))) return 'pnpm'
   if (existsSync(resolve(root, 'yarn.lock'))) return 'yarn'
   if (existsSync(resolve(root, 'bun.lockb'))) return 'bun'
   return 'npm'
+}
+
+function cleanInstallState(pm: string) {
+  rmSync(resolve(root, 'node_modules'), { recursive: true, force: true })
+
+  if (pm === 'pnpm') {
+    rmSync(resolve(root, 'pnpm-lock.yaml'), { force: true })
+  }
 }
 
 function getPackageManagerVersion(pm: string) {
@@ -203,6 +219,8 @@ async function main() {
   writeJSON('package.json', pkg)
 
   // ── 9. Install ─────────────────────────────────────────────────────────────
+  cleanInstallState(pm)
+
   const installCommand =
     pm === 'pnpm' ? 'pnpm up --latest' : pm === 'bun' ? 'bun update --latest' : `${pm} install`
   execSync(installCommand, { cwd: root, stdio: 'inherit' })
