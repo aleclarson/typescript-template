@@ -58,34 +58,21 @@ function detectPackageManager() {
   const userAgent = process.env.npm_config_user_agent
   const execPath = process.env.npm_execpath
 
-  if (userAgent?.startsWith('pnpm/') || execPath?.includes('/pnpm')) return 'pnpm'
-  if (userAgent?.startsWith('yarn/') || execPath?.includes('/yarn')) return 'yarn'
   if (userAgent?.startsWith('bun/') || execPath?.includes('/bun')) return 'bun'
+  if (userAgent?.startsWith('pnpm/') || execPath?.includes('/pnpm')) return 'pnpm'
 
-  if (existsSync(resolve(root, 'pnpm-lock.yaml'))) return 'pnpm'
-  if (existsSync(resolve(root, 'yarn.lock'))) return 'yarn'
-  if (existsSync(resolve(root, 'bun.lockb'))) return 'bun'
-  return 'npm'
+  if (existsSync(resolve(root, 'bun.lock')) || existsSync(resolve(root, 'bun.lockb'))) return 'bun'
+  return 'pnpm'
 }
 
-function cleanInstallState(pm: string) {
+function cleanInstallState(pm: 'bun' | 'pnpm') {
   rmSync(resolve(root, 'node_modules'), { recursive: true, force: true })
 
-  switch (pm) {
-    case 'pnpm':
-      rmSync(resolve(root, 'pnpm-lock.yaml'), { force: true })
-      break
-    case 'yarn':
-      rmSync(resolve(root, 'yarn.lock'), { force: true })
-      break
-    case 'bun':
-      rmSync(resolve(root, 'bun.lock'), { force: true })
-      rmSync(resolve(root, 'bun.lockb'), { force: true })
-      break
-    case 'npm':
-      rmSync(resolve(root, 'package-lock.json'), { force: true })
-      rmSync(resolve(root, 'npm-shrinkwrap.json'), { force: true })
-      break
+  if (pm === 'bun') {
+    rmSync(resolve(root, 'bun.lock'), { force: true })
+    rmSync(resolve(root, 'bun.lockb'), { force: true })
+  } else {
+    rmSync(resolve(root, 'pnpm-lock.yaml'), { force: true })
   }
 }
 
@@ -234,8 +221,7 @@ async function main() {
   // ── 9. Install ─────────────────────────────────────────────────────────────
   cleanInstallState(pm)
 
-  const installCommand =
-    pm === 'pnpm' ? 'pnpm up --latest' : pm === 'bun' ? 'bun update --latest' : `${pm} install`
+  const installCommand = pm === 'bun' ? 'bun update --latest' : 'pnpm up --latest'
   execSync(installCommand, { cwd: root, stdio: 'inherit' })
 
   // ── 10. Self-delete ─────────────────────────────────────────────────────────
