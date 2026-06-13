@@ -71,8 +71,21 @@ function detectPackageManager() {
 function cleanInstallState(pm: string) {
   rmSync(resolve(root, 'node_modules'), { recursive: true, force: true })
 
-  if (pm === 'pnpm') {
-    rmSync(resolve(root, 'pnpm-lock.yaml'), { force: true })
+  switch (pm) {
+    case 'pnpm':
+      rmSync(resolve(root, 'pnpm-lock.yaml'), { force: true })
+      break
+    case 'yarn':
+      rmSync(resolve(root, 'yarn.lock'), { force: true })
+      break
+    case 'bun':
+      rmSync(resolve(root, 'bun.lock'), { force: true })
+      rmSync(resolve(root, 'bun.lockb'), { force: true })
+      break
+    case 'npm':
+      rmSync(resolve(root, 'package-lock.json'), { force: true })
+      rmSync(resolve(root, 'npm-shrinkwrap.json'), { force: true })
+      break
   }
 }
 
