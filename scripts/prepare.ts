@@ -91,8 +91,9 @@ function getPackageManagerVersion(pm: string) {
   return execSync(`${pm} --version`, { cwd: root, encoding: 'utf8' }).trim()
 }
 
-function installWorkflowTemplates() {
-  const templateDir = resolve(root, '.template/workflows')
+function installWorkflowTemplates(pm: 'bun' | 'pnpm') {
+  const workflowsTemplateDir = resolve(root, '.template/workflows')
+  const templateDir = resolve(workflowsTemplateDir, pm)
   if (!existsSync(templateDir)) return
 
   const workflowsDir = resolve(root, '.github/workflows')
@@ -102,7 +103,7 @@ function installWorkflowTemplates() {
     renameSync(resolve(templateDir, file), resolve(workflowsDir, file))
   }
 
-  rmdirSync(templateDir)
+  rmSync(workflowsTemplateDir, { recursive: true, force: true })
   try {
     rmdirSync(resolve(root, '.template'))
   } catch {}
@@ -178,8 +179,6 @@ async function main() {
   if (existsSync(resolve(root, 'readme.md'))) {
     writeText('readme.md', readText('readme.md').replace(/\bxxx\b/g, name as string))
   }
-
-  installWorkflowTemplates()
 
   // ── 4. Unset git origin ────────────────────────────────────────────────────
   try {
@@ -265,6 +264,8 @@ async function main() {
   if (pm === 'bun') {
     writeText('bunfig.toml', `[install]\nminimumReleaseAge = ${sevenDaysInSeconds}\n`)
   }
+
+  installWorkflowTemplates(pm)
 
   // ── 8. Clean up prepare machinery from package.json ───────────────────────
   delete pkg.scripts.prepare
