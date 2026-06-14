@@ -158,13 +158,17 @@ async function main() {
   }
 
   // ── 6. Test runner ─────────────────────────────────────────────────────────
-  const runner = await select({
-    message: 'Test runner',
-    options: [
-      { value: 'node', label: 'Node + Vitest' },
-      { value: 'bun', label: 'Bun + bun:test' },
-    ],
-  })
+  const detectedPm = detectPackageManager()
+  const runner =
+    detectedPm === 'bun'
+      ? 'bun'
+      : await select({
+          message: 'Test runner',
+          options: [
+            { value: 'node', label: 'Node + Vitest' },
+            { value: 'bun', label: 'Bun + bun:test' },
+          ],
+        })
 
   if (isCancel(runner)) {
     cancel('Setup cancelled.')
@@ -197,7 +201,7 @@ async function main() {
   }
 
   // ── 7. Configure the chosen package manager ───────────────────────────────
-  const pm = runner === 'bun' ? 'bun' : detectPackageManager()
+  const pm = runner === 'bun' ? 'bun' : detectedPm
   pkg.packageManager = `${pm}@${getPackageManagerVersion(pm)}`
 
   if (pm === 'pnpm') {
