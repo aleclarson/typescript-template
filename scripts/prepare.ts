@@ -166,7 +166,7 @@ async function main() {
   writeText(
     'AGENTS.md',
     await fetchText(
-      'https://gist.githubusercontent.com/aleclarson/4c80686b1c3e204a01cdbe82f8e2c084/raw/cdc482cca35cd2e3aaa4cec5531bd6690b97964d/AGENTS.md',
+      'https://gist.githubusercontent.com/aleclarson/4c80686b1c3e204a01cdbe82f8e2c084/raw/1b8e604ef348bb949292d7ef91cc6880b327364a/AGENTS.md',
       'AGENTS.md',
     ),
   )
