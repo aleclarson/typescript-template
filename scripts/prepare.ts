@@ -37,7 +37,7 @@ const licenseOptions = {
     label: 'FSLv1 Apache 2.0',
     urls: ['https://fsl.software/FSL-1.1-ALv2.template.md'],
   },
-} as const
+}
 
 type License = keyof typeof licenseOptions
 
@@ -100,7 +100,7 @@ async function main() {
   const name = await text({
     message: 'Package name',
     placeholder: 'my-package',
-    validate(value) {
+    validate(value = '') {
       if (!value.trim()) return 'Name is required.'
       if (!/^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(value))
         return 'Must be a valid npm package name.'
@@ -246,7 +246,7 @@ async function main() {
   // ── 11. Squash history into a clean first commit ──────────────────────────
   execSync(
     'git update-ref -d HEAD && git add -A && git commit -m "initialize typescript template"',
-    { cwd: root, stdio: 'inherit', shell: true },
+    { cwd: root, stdio: 'inherit', shell: 'bash' },
   )
 
   outro("You're all set! Happy coding 🚀")
