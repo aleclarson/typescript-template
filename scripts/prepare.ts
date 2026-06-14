@@ -9,7 +9,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs'
-import { resolve } from 'node:path'
+import { basename, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(fileURLToPath(import.meta.url), '../..')
@@ -97,9 +97,12 @@ async function main() {
   intro('Set up your project')
 
   // ── 1. Project name ────────────────────────────────────────────────────────
+  const defaultPackageName = basename(process.cwd())
   const name = await text({
     message: 'Package name',
     placeholder: 'my-package',
+    initialValue: defaultPackageName,
+    defaultValue: defaultPackageName,
     validate(value = '') {
       if (!value.trim()) return 'Name is required.'
       if (!/^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(value))
