@@ -26,6 +26,7 @@ const writeText = (file: string, content: string) => writeFileSync(resolve(root,
 
 const sevenDaysInMinutes = 7 * 24 * 60
 const sevenDaysInSeconds = sevenDaysInMinutes * 60
+const isCI = process.env.CI === '1'
 
 const licenseOptions = {
   'MIT OR Apache-2.0': {
@@ -115,21 +116,25 @@ async function main() {
     process.exit(0)
   }
 
-  intro('Set up your project')
+  if (!isCI) {
+    intro('Set up your project')
+  }
 
   // ── 1. Project name ────────────────────────────────────────────────────────
-  const defaultPackageName = basename(process.cwd())
-  const name = await text({
-    message: 'Package name',
-    placeholder: 'my-package',
-    initialValue: defaultPackageName,
-    defaultValue: defaultPackageName,
-    validate(value = '') {
-      if (!value.trim()) return 'Name is required.'
-      if (!/^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(value))
-        return 'Must be a valid npm package name.'
-    },
-  })
+  const defaultPackageName = isCI ? 'test-package' : basename(process.cwd())
+  const name = isCI
+    ? defaultPackageName
+    : await text({
+        message: 'Package name',
+        placeholder: 'my-package',
+        initialValue: defaultPackageName,
+        defaultValue: defaultPackageName,
+        validate(value = '') {
+          if (!value.trim()) return 'Name is required.'
+          if (!/^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(value))
+            return 'Must be a valid npm package name.'
+        },
+      })
 
   if (isCancel(name)) {
     cancel('Setup cancelled.')
@@ -138,14 +143,16 @@ async function main() {
 
   // ── 2. License ─────────────────────────────────────────────────────────────
   const defaultLicense = 'MIT OR Apache-2.0'
-  const license = await select<License>({
-    message: 'License',
-    initialValue: pkg.license in licenseOptions ? (pkg.license as License) : defaultLicense,
-    options: Object.entries(licenseOptions).map(([value, option]) => ({
-      value: value as License,
-      label: option.label,
-    })),
-  })
+  const license = isCI
+    ? defaultLicense
+    : await select<License>({
+        message: 'License',
+        initialValue: pkg.license in licenseOptions ? (pkg.license as License) : defaultLicense,
+        options: Object.entries(licenseOptions).map(([value, option]) => ({
+          value: value as License,
+          label: option.label,
+        })),
+      })
 
   if (isCancel(license)) {
     cancel('Setup cancelled.')
@@ -182,10 +189,12 @@ async function main() {
   }
 
   // ── 5. gh repo create ──────────────────────────────────────────────────────
-  const createRepo = await confirm({
-    message: 'Run `gh repo create` now?',
-    initialValue: false,
-  })
+  const createRepo = isCI
+    ? false
+    : await confirm({
+        message: 'Run `gh repo create` now?',
+        initialValue: false,
+      })
 
   if (isCancel(createRepo)) {
     cancel('Setup cancelled.')
@@ -200,8 +209,10 @@ async function main() {
   // ── 6. Test runner ─────────────────────────────────────────────────────────
   const detectedPm = detectPackageManager()
   const runner =
-    detectedPm === 'bun'
-      ? 'bun'
+    detectedPm === 'bun' || isCI
+      ? detectedPm === 'bun'
+        ? 'bun'
+        : 'node'
       : await select({
           message: 'Test runner',
           options: [
@@ -282,7 +293,9 @@ async function main() {
     { cwd: root, stdio: 'inherit', shell: 'bash' },
   )
 
-  outro("You're all set! Happy coding 🚀")
+  if (!isCI) {
+    outro("You're all set! Happy coding 🚀")
+  }
 }
 
 main().catch((err) => {
