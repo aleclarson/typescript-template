@@ -2,8 +2,10 @@ import { cancel, confirm, intro, isCancel, outro, select, text } from '@clack/pr
 import { execSync } from 'node:child_process'
 import {
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   rmdirSync,
   unlinkSync,
@@ -88,6 +90,23 @@ function getPackageManagerVersion(pm: string) {
   return execSync(`${pm} --version`, { cwd: root, encoding: 'utf8' }).trim()
 }
 
+function installWorkflowTemplates() {
+  const templateDir = resolve(root, '.template/workflows')
+  if (!existsSync(templateDir)) return
+
+  const workflowsDir = resolve(root, '.github/workflows')
+  mkdirSync(workflowsDir, { recursive: true })
+
+  for (const file of readdirSync(templateDir)) {
+    renameSync(resolve(templateDir, file), resolve(workflowsDir, file))
+  }
+
+  rmdirSync(templateDir)
+  try {
+    rmdirSync(resolve(root, '.template'))
+  } catch {}
+}
+
 async function main() {
   const pkg = readJSON('package.json')
 
@@ -152,6 +171,8 @@ async function main() {
   if (existsSync(resolve(root, 'readme.md'))) {
     writeText('readme.md', readText('readme.md').replace(/\bxxx\b/g, name as string))
   }
+
+  installWorkflowTemplates()
 
   // ── 4. Unset git origin ────────────────────────────────────────────────────
   try {
