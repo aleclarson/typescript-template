@@ -26,29 +26,35 @@ const sevenDaysInMinutes = 7 * 24 * 60
 const sevenDaysInSeconds = sevenDaysInMinutes * 60
 
 const licenseOptions = {
-  'Apache-2.0': {
-    label: 'Apache 2.0',
-    url: 'https://www.apache.org/licenses/LICENSE-2.0.txt',
+  'MIT OR Apache-2.0': {
+    label: 'MIT or Apache 2.0',
+    urls: [
+      'https://raw.githubusercontent.com/spdx/license-list-data/main/text/MIT.txt',
+      'https://www.apache.org/licenses/LICENSE-2.0.txt',
+    ],
   },
   'FSL-1.1-ALv2': {
-    label: 'FSLv1-A2',
-    url: 'https://fsl.software/FSL-1.1-ALv2.template.md',
-  },
-  MIT: {
-    label: 'MIT',
-    url: 'https://raw.githubusercontent.com/spdx/license-list-data/main/text/MIT.txt',
+    label: 'FSLv1 Apache 2.0',
+    urls: ['https://fsl.software/FSL-1.1-ALv2.template.md'],
   },
 } as const
 
 type License = keyof typeof licenseOptions
 
 async function fetchLicenseText(license: License) {
-  const response = await fetch(licenseOptions[license].url)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${licenseOptions[license].label} license: ${response.status}`)
-  }
+  const texts = await Promise.all(
+    licenseOptions[license].urls.map(async (url) => {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${licenseOptions[license].label} license: ${response.status}`)
+      }
 
-  return (await response.text())
+      return response.text()
+    }),
+  )
+
+  return texts
+    .join('\n\n---\n\n')
     .replace(/\$\{year\}/g, new Date().getFullYear().toString())
     .replace(/\$\{licensor name\}/g, 'Alec Larson')
     .replace(/<year> <copyright holders>/g, `${new Date().getFullYear()} Alec Larson`)
@@ -107,9 +113,10 @@ async function main() {
   }
 
   // ── 2. License ─────────────────────────────────────────────────────────────
+  const defaultLicense = 'MIT OR Apache-2.0'
   const license = await select<License>({
     message: 'License',
-    initialValue: pkg.license as License,
+    initialValue: pkg.license in licenseOptions ? (pkg.license as License) : defaultLicense,
     options: Object.entries(licenseOptions).map(([value, option]) => ({
       value: value as License,
       label: option.label,
