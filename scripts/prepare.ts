@@ -41,16 +41,18 @@ const licenseOptions = {
 
 type License = keyof typeof licenseOptions
 
+async function fetchText(url: string, label: string) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${label}: ${response.status}`)
+  }
+
+  return response.text()
+}
+
 async function fetchLicenseText(license: License) {
   const texts = await Promise.all(
-    licenseOptions[license].urls.map(async (url) => {
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ${licenseOptions[license].label} license: ${response.status}`)
-      }
-
-      return response.text()
-    }),
+    licenseOptions[license].urls.map((url) => fetchText(url, licenseOptions[license].label)),
   )
 
   return texts
@@ -131,10 +133,17 @@ async function main() {
     process.exit(0)
   }
 
-  // ── 3. Replace xxx occurrences ─────────────────────────────────────────────
+  // ── 3. Replace template defaults ───────────────────────────────────────────
   pkg.name = name
   pkg.license = license
   writeText('LICENSE', await fetchLicenseText(license))
+  writeText(
+    'AGENTS.md',
+    await fetchText(
+      'https://gist.githubusercontent.com/aleclarson/4c80686b1c3e204a01cdbe82f8e2c084/raw/cdc482cca35cd2e3aaa4cec5531bd6690b97964d/AGENTS.md',
+      'AGENTS.md',
+    ),
+  )
 
   if (pkg.repository?.url) {
     pkg.repository.url = pkg.repository.url.replace(/xxx/g, name as string)
