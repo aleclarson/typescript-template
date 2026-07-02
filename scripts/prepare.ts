@@ -187,25 +187,7 @@ async function main() {
     // No origin remote — that's fine.
   }
 
-  // ── 5. gh repo create ──────────────────────────────────────────────────────
-  const createRepo = isCI
-    ? false
-    : await confirm({
-        message: 'Run `gh repo create` now?',
-        initialValue: false,
-      })
-
-  if (isCancel(createRepo)) {
-    cancel('Setup cancelled.')
-    process.exit(0)
-  }
-
-  if (createRepo) {
-    // Let gh drive the interactive flow.
-    execSync('gh repo create', { cwd: root, stdio: 'inherit' })
-  }
-
-  // ── 6. Test runner ─────────────────────────────────────────────────────────
+  // ── 5. Test runner ─────────────────────────────────────────────────────────
   const detectedPm = detectPackageManager()
   const runner =
     detectedPm === 'bun' || isCI
@@ -250,7 +232,7 @@ async function main() {
     } catch {}
   }
 
-  // ── 7. Configure the chosen package manager ───────────────────────────────
+  // ── 6. Configure the chosen package manager ───────────────────────────────
   const pm = runner === 'bun' ? 'bun' : detectedPm
   pkg.packageManager = `${pm}@${getPackageManagerVersion(pm)}`
 
@@ -267,20 +249,20 @@ async function main() {
 
   installWorkflowTemplates(pm)
 
-  // ── 8. Clean up prepare machinery from package.json ───────────────────────
+  // ── 7. Clean up prepare machinery from package.json ───────────────────────
   delete pkg.scripts.prepare
   delete (pkg.devDependencies as Record<string, string>)['@clack/prompts']
   delete (pkg.devDependencies as Record<string, string>)['tsx']
 
   writeJSON('package.json', pkg)
 
-  // ── 9. Install ─────────────────────────────────────────────────────────────
+  // ── 8. Install ─────────────────────────────────────────────────────────────
   cleanInstallState(pm)
 
   const installCommand = pm === 'bun' ? 'bun update --latest' : 'pnpm up --latest'
   execSync(installCommand, { cwd: root, stdio: 'inherit' })
 
-  // ── 10. Self-delete ─────────────────────────────────────────────────────────
+  // ── 9. Self-delete ──────────────────────────────────────────────────────────
   unlinkSync(resolve(root, 'scripts/prepare.ts'))
   try {
     if (readdirSync(resolve(root, 'scripts')).length === 0) {
@@ -288,11 +270,30 @@ async function main() {
     }
   } catch {}
 
-  // ── 11. Squash history into a clean first commit ──────────────────────────
+  // ── 10. Squash history into a clean first commit ──────────────────────────
   execSync(
     'git update-ref -d HEAD && git add -A && git commit -m "initialize typescript template"',
     { cwd: root, stdio: 'inherit', shell: 'bash' },
   )
+
+  // ── 11. gh repo create ─────────────────────────────────────────────────────
+  const createRepo = isCI
+    ? false
+    : await confirm({
+        message: 'Run `gh repo create` now?',
+        initialValue: false,
+      })
+
+  if (isCancel(createRepo)) {
+    cancel('Setup cancelled.')
+    process.exit(0)
+  }
+
+  if (createRepo) {
+    // Let gh drive the interactive flow after the runtime, test runner,
+    // lockfile, and clean initial commit are in place.
+    execSync('gh repo create', { cwd: root, stdio: 'inherit' })
+  }
 
   if (!isCI) {
     outro("You're all set! Happy coding 🚀")
