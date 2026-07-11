@@ -250,7 +250,7 @@ async function main() {
   installWorkflowTemplates(pm)
 
   // ── 7. Clean up prepare machinery from package.json ───────────────────────
-  delete pkg.scripts.prepare
+  delete pkg.scripts.setup
   delete (pkg.devDependencies as Record<string, string>)['@clack/prompts']
   delete (pkg.devDependencies as Record<string, string>)['tsx']
 
@@ -264,6 +264,7 @@ async function main() {
 
   // ── 9. Self-delete ──────────────────────────────────────────────────────────
   unlinkSync(resolve(root, 'scripts/prepare.ts'))
+  unlinkSync(resolve(root, 'scripts/setup.mjs'))
   try {
     if (readdirSync(resolve(root, 'scripts')).length === 0) {
       rmdirSync(resolve(root, 'scripts'))
